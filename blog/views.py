@@ -50,6 +50,18 @@ class PostListView(LoginRequiredMixin, ListView):
         data['all_users'] = all_users
         print(all_users, file=sys.stderr)
         return data
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = Follow.objects.filter(user=user)
+        follows = [user]
+        for obj in qs:
+            follows.append(obj.follow_user)
+        return Post.objects.filter(author__in=follows).order_by('-date_posted')
+
+
+
+
 class UserViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
