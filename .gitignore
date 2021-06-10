@@ -1,0 +1,6 @@
+virtual/
+*.pyc
+*.env
+.DS_Store
+*.vscode
+__pycache__
