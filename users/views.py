@@ -39,9 +39,9 @@ def profile(request):
 @login_required
 def SearchView(request):
     if request.method == 'POST':
-        kerko = request.POST.get('search')
-        print(kerko)
-        results = User.objects.filter(username__contains=kerko)
+        query = request.POST.get('search')
+        print(query)
+        results = User.objects.filter(username__contains=query)
         context = {
             'results':results
         }

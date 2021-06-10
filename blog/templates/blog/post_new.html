@@ -3,16 +3,15 @@
 {% block content %}
 <div class="container">
     <h3 class="white-important">
-        Change profile data
+        {{  tag_line }}
     </h3>
-    <form class="col-6 no-padding" method="POST" enctype="multipart/form-data">
+    <form method="POST" class="col-12 col-md-6 no-padding pr-3 pr-md-0">
         {% csrf_token %}
         <fieldset class="form-group">
-            {{ uform | crispy }}
-            {{ pform | crispy }}
+            {{ form | crispy }}
         </fieldset>
         <div class="form-group">
-            <button class="btn btn-outline-primary" type="submit">Change data</button>
+            <button class="btn btn-outline-primary" type="submit">Submit changes</button>
         </div>
     </form>
 </div>
