@@ -103,6 +103,105 @@ class UserPostListView(LoginRequiredMixin, ListView):
 
         return self.get(self, request, *args, **kwargs)
 
+class PostDetailView(DetailView):
+    model = Post
+    template_name = 'blog/post_detail.html'
+    context_object_name = 'post'
+
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data(**kwargs)
+        comments_connected = Comment.objects.filter(post_connected=self.get_object()).order_by('-date_posted')
+        data['comments'] = comments_connected
+        data['form'] = NewCommentForm(instance=self.request.user)
+        return data
+
+    def post(self, request, *args, **kwargs):
+        new_comment = Comment(content=request.POST.get('content'),
+                              author=self.request.user,
+                              post_connected=self.get_object())
+        new_comment.save()
+
+        return self.get(self, request, *args, **kwargs)
+
+class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Post
+    template_name = 'blog/post_delete.html'
+    context_object_name = 'post'
+    success_url = '/'
+
+    def test_func(self):
+        return is_users(self.get_object().author, self.request.user)
+
+
+class PostCreateView(LoginRequiredMixin, CreateView):
+    model = Post
+    fields = ['content']
+    template_name = 'blog/post_new.html'
+    success_url = '/'
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data(**kwargs)
+        data['tag_line'] = 'Add a new post'
+        return data
+
+
+class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Post
+    fields = ['content']
+    template_name = 'blog/post_new.html'
+    success_url = '/'
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+
+    def test_func(self):
+        return is_users(self.get_object().author, self.request.user)
+
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data(**kwargs)
+        data['tag_line'] = 'Edit a post'
+        return data
+
+class FollowsListView(ListView):
+    model = Follow
+    template_name = 'blog/follow.html'
+    context_object_name = 'follows'
+
+    def visible_user(self):
+        return get_object_or_404(User, username=self.kwargs.get('username'))
+
+    def get_queryset(self):
+        user = self.visible_user()
+        return Follow.objects.filter(user=user).order_by('-date')
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        data = super().get_context_data(**kwargs)
+        data['follow'] = 'follows'
+        return data
+
+class FollowersListView(ListView):
+    model = Follow
+    template_name = 'blog/follow.html'
+    context_object_name = 'follows'
+
+    def visible_user(self):
+        return get_object_or_404(User, username=self.kwargs.get('username'))
+
+    def get_queryset(self):
+        user = self.visible_user()
+        return Follow.objects.filter(follow_user=user).order_by('-date')
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        data = super().get_context_data(**kwargs)
+        data['follow'] = 'followers'
+        return data
+
+
 
 class UserViewSet(viewsets.ModelViewSet):
     """
@@ -120,13 +219,7 @@ class GroupViewSet(viewsets.ModelViewSet):
     serializer_class = GroupSerializer
     permission_classes = [permissions.IsAuthenticated]
     
-class PostListView(LoginRequiredMixin, ListView):
-    model = Post
-    template_name = 'blog/home.html'
-    context_object_name = 'posts'
-    ordering = ['-date_posted']
-    paginate_by = PAGINATION_COUNT
-    
+
     
 @login_required
 def postpreference(request, postid, userpreference):
@@ -229,3 +322,31 @@ def postpreference(request, postid, userpreference):
                           'postid': postid}
 
                 return redirect('blog-home')
+
+def about(request):
+    return render(request,'blog/about.html',)
+
+@api_view(['GET', 'POST', 'DELETE'])
+def post_list(request):
+    if request.method == 'GET':
+        posts = Post.objects.all()
+        
+        title = request.query_params.get('title', None)
+        if title is not None:
+            posts = posts.filter(title__icontains=title)
+        
+        posts_serializer = PostSerializer(posts, many=True)
+        return JsonResponse(posts_serializer.data, safe=False)
+        # 'safe=False' for objects serialization
+ 
+    elif request.method == 'POST':
+        post_data = JSONParser().parse(request)
+        post_serializer = PostSerializer(data=post_data)
+        if post_serializer.is_valid():
+            post_serializer.save()
+            return JsonResponse(post_serializer.data, status=status.HTTP_201_CREATED) 
+        return JsonResponse(post_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    elif request.method == 'DELETE':
+        count = Post.objects.all().delete()
+        return JsonResponse({'message': '{} Posts were deleted successfully!'.format(count[0])}, status=status.HTTP_204_NO_CONTENT)
