@@ -17,13 +17,14 @@ from django.contrib.auth.decorators import login_required
 from rest_framework import status
 
 # Create your views here.
+# class-based views
 
 def is_users(post_user, logged_user):
     return post_user == logged_user
 
 
 PAGINATION_COUNT = 3
-
+#list all posts
 class PostListView(LoginRequiredMixin, ListView):
     model = Post
     template_name = 'blog/home.html'
@@ -59,6 +60,7 @@ class PostListView(LoginRequiredMixin, ListView):
             follows.append(obj.follow_user)
         return Post.objects.filter(author__in=follows).order_by('-date_posted')
 
+#list all users
 class UserPostListView(LoginRequiredMixin, ListView):
     model = Post
     template_name = 'blog/user_posts.html'
@@ -103,6 +105,7 @@ class UserPostListView(LoginRequiredMixin, ListView):
 
         return self.get(self, request, *args, **kwargs)
 
+#details about a post
 class PostDetailView(DetailView):
     model = Post
     template_name = 'blog/post_detail.html'
@@ -123,6 +126,7 @@ class PostDetailView(DetailView):
 
         return self.get(self, request, *args, **kwargs)
 
+#deleting a post
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Post
     template_name = 'blog/post_delete.html'
@@ -132,7 +136,7 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def test_func(self):
         return is_users(self.get_object().author, self.request.user)
 
-
+#create a post
 class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
     fields = ['content']
@@ -147,8 +151,9 @@ class PostCreateView(LoginRequiredMixin, CreateView):
         data = super().get_context_data(**kwargs)
         data['tag_line'] = 'Add a new post'
         return data
+#get the data and return to tmplates
 
-
+#updating a post
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post
     fields = ['content']
@@ -167,6 +172,7 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         data['tag_line'] = 'Edit a post'
         return data
 
+#list follows
 class FollowsListView(ListView):
     model = Follow
     template_name = 'blog/follow.html'
@@ -184,6 +190,7 @@ class FollowsListView(ListView):
         data['follow'] = 'follows'
         return data
 
+#lists followers
 class FollowersListView(ListView):
     model = Follow
     template_name = 'blog/follow.html'

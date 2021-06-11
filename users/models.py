@@ -9,7 +9,8 @@ class Profile(models.Model):
 
     def __str__(self):
         return f'{self.user.username} Profile'
-
+    
+#show followers and following
     @property
     def followers(self):
         return Follow.objects.filter(follow_user=self.user).count()
@@ -22,13 +23,14 @@ class Profile(models.Model):
              update_fields=None):
         super().save()
 
+#resize image so as not to make the app go slower(high pixel pic)
         img = Image.open(self.image.path)
         if img.height > 300 or img.width > 300:
             output_size = (300, 300)
             img.thumbnail(output_size)
             img.save(self.image.path)
 
-
+#save followers
 class Follow(models.Model):
     user = models.ForeignKey(User, related_name='user', on_delete=models.CASCADE)
     follow_user = models.ForeignKey(User, related_name='follow_user', on_delete=models.CASCADE)

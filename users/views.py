@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 # Create your views here.
 def register(request):
     if request.method == 'POST':
-        form = UserRegisterForm(request.POST)
+        form = UserRegisterForm(request.POST)  #request data user has put in the form
         if form.is_valid():
             form.save()
             username = form.cleaned_data.get('username')
@@ -17,6 +17,7 @@ def register(request):
         form = UserRegisterForm()
     return render(request, 'users/register.html', {'form': form})
 
+# update profile(user profile)
 @login_required
 def profile(request):
     if request.method == 'POST':
@@ -35,14 +36,16 @@ def profile(request):
     return render(request, 'users/profile.html', {'uform': uform, 'pform': pform})
 
 
-
+# search users
 @login_required
 def SearchView(request):
     if request.method == 'POST':
-        query = request.POST.get('search')
+        query = request.POST.get('search')  
         print(query)
-        results = User.objects.filter(username__contains=query)
+        results = User.objects.filter(username__contains=query)  # filter all users
         context = {
             'results':results
         }
         return render(request, 'users/search_result.html', context)
+
+#login_required...have to be logged in

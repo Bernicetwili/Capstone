@@ -4,6 +4,7 @@ from django.dispatch import receiver
 from .models import Profile
 
 
+#once user is registered
 # signal that gets fired after the user is saved
 @receiver(post_save, sender=User)
 def create_profile(sender, instance, created, **kwargs):

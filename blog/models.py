@@ -18,13 +18,13 @@ class Post(models.Model):
     @property
     def number_of_comments(self):
         return Comment.objects.filter(post_connected=self).count()
-
+# returning the number of comments
 
 class Comment(models.Model):
     content = models.TextField(max_length=150)
     date_posted = models.DateTimeField(default=timezone.now)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
-    post_connected = models.ForeignKey(Post, on_delete=models.CASCADE)
+    post_connected = models.ForeignKey(Post, on_delete=models.CASCADE) #who owns the comment
 
 
 class Preference(models.Model):
