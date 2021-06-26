@@ -226,8 +226,6 @@ class GroupViewSet(viewsets.ModelViewSet):
     serializer_class = GroupSerializer
     permission_classes = [permissions.IsAuthenticated]
     
-
-    
 @login_required
 def postpreference(request, postid, userpreference):
         
@@ -329,6 +327,8 @@ def postpreference(request, postid, userpreference):
                           'postid': postid}
 
                 return redirect('blog-home')
+
+    
 
 def about(request):
     return render(request,'blog/about.html',)
